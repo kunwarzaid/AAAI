@@ -1,20 +1,4 @@
-\paragraph{Operational Safety Index (OSI).}
-The \textbf{Operational Safety Index (OSI)} quantifies how safely the system behaves when safety supervision is active.  
-In earlier evaluations, systems without safety agents received artificially high safety scores simply because no safety checks could trigger.  
-To correct this, we define OSI to be zero whenever safety monitoring is disabled.  
-This ensures that operational trust cannot be achieved through the absence of supervision.
-
-When safety agents are active, OSI decreases as unsafe actions increase, reflecting the proportion of risky behavior detected during reasoning.  
-Unsafe behavior includes two types of safety events:
-\begin{enumerate}
-    \item \textbf{Unsafe prescriptions (UnsafeRx\%)} — drug orders violating contraindication or DDI rules.
-    \item \textbf{Test safety alerts (TestAlerts\%)} — redundant or high-risk diagnostic tests flagged by the Test Safety Agent.
-\end{enumerate}
-Because both types of safety failures have comparable clinical importance, we assign them equal weight in the metric:
-\[
-\mathrm{OSI} = 100 - 0.5(\text{UnsafeRx\%} + \text{TestAlerts\%}).
-\]
-
-This linear penalty design provides an interpretable score on a 0–100 scale, where higher values represent safer system behavior under active supervision.  
-By setting OSI = 0 for safety-disabled modes and reducing OSI proportionally to detected hazards, the metric explicitly links operational trust to \emph{observed safety performance}, not to structural configuration.  
-Thus, OSI distinguishes between systems that are genuinely safe because they detect and avoid risks, and those that only appear safe because no checks were performed.
+Reasoning-trace statistics (Figure~\ref{fig:reasoning_quality}) reveal complementary strengths across configurations.  
+\textbf{Safety} and \textbf{Trust} generated the longest reasoning chains (roughly 300–350 tokens), reflecting explicit verification and safety dialogues.  
+\textbf{Consensus}, although producing shorter traces, showed the highest coherence (RDC = 73.8) and evidence coverage, albeit with greater redundancy due to inter-agent debate.  
+These findings indicate that consensus mechanisms encourage reflective reasoning and internal agreement, while safety agents promote careful verification even at the cost of brevity.
