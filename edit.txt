@@ -1,3 +1,4 @@
 \paragraph{Limitations.}
-These indices capture reasoning coherence and behavioral prudence but do not establish ground-truth medical validity. 
-FTI should thus be interpreted as a measure of \textit{reasoning trustworthiness}, not clinical correctness.
+The proposed indices quantify internal reasoning quality and operational prudence, but they do not validate clinical correctness or patient safety outcomes.  
+In particular, RDC and ETI capture how coherently and consistently the model reasons, not whether its conclusions are medically accurate.  
+Accordingly, the Final Trust Index (FTI) should be interpreted as an indicator of \textit{reasoning trustworthiness}—the extent to which a system reasons transparently and responsibly—rather than as a measure of clinical validity.
