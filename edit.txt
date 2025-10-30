@@ -1,29 +1,28 @@
 \subsection{Algorithmic Computation}
-To ensure reproducibility and transparency in metric derivation, Algorithm~\ref{alg:trustmetrics} provides the procedural computation of all three trust indices—Epistemic (ETI), Operational (OSI), and Final (FTI)—as implemented in our evaluation pipeline. 
-It explicitly operationalizes the equations defined in Section~3.6, linking per-case metrics (accuracy, consensus disagreement, reasoning–diagnosis consistency, and safety rates) to system-level trust scores. 
-This algorithmic description allows independent verification of metric calculations and clarifies the conditional treatment of safety-disabled configurations (where OSI = 0)
+To make metric derivation reproducible and verifiable, Algorithm~\ref{alg:trustmetrics} outlines how the three trust indices—Epistemic (ETI), Operational (OSI), and Final (FTI)—are computed within our evaluation pipeline.  
+It translates the equations from Section~3.6 into explicit procedural steps, showing how per-case values for accuracy, consensus disagreement, reasoning–diagnosis consistency, and safety rates are aggregated into system-level trust scores.  
+The algorithm also specifies the conditional handling of safety-disabled configurations (where $\mathrm{OSI}=0$), ensuring transparency in how different setups are treated during evaluation.
 
 \section{Experimental Setup}
 \label{sec:setup}
 
 \subsection{Dataset and Task}
 \paragraph{AgentClinic–MedQA corpus.}
-Experiments use 50 diagnostic scenarios drawn from the open-source MedQA benchmark \cite{jin2021disease}, wrapped in the AgentClinic interactive format.
-Each case includes patient demographics, symptoms, test results, and ground-truth diagnoses from the original MedQA item set.
-AgentClinic provides structured input and output templates enabling multi-agent reasoning and safety validation.
-All data are publicly licensed (CC BY-NC 4.0) and contain no patient-identifiable information.
-Scenarios were randomly sampled from the MedQA test set to ensure diverse disease categories and difficulty levels.
+We evaluated Trust-X on 50 diagnostic scenarios drawn from the open-source \textit{MedQA} benchmark \cite{jin2021disease}, adapted into the \textit{AgentClinic} interactive format.  
+Each scenario includes structured patient information—symptoms, demographics, and test findings—paired with a verified ground-truth diagnosis from the original MedQA dataset.  
+The AgentClinic wrapper provides standardized dialogue templates for multi-agent reasoning and safety validation.  
+All data are publicly available under a CC BY-NC 4.0 license and contain no identifiable patient information.  
+Cases were randomly selected from the MedQA test split to ensure diversity in disease category and diagnostic complexity.
 
 \paragraph{Sample Size Justification.}
-Each configuration was evaluated on 50 diverse diagnostic cases (4 configurations × 50 = 200 total evaluations). 
-This design reflects a controlled pilot-scale experiment rather than a large-scale benchmark. 
-Due to compute and model-access constraints, we prioritized depth of reasoning and qualitative trace analysis over breadth of sampling. 
-Our goal was to examine whether current LLMs exhibit trustworthy reasoning behavior under realistic clinical supervision—not to establish population-level performance estimates.
-
+Each of the four configurations was tested on 50 independent clinical cases (200 runs in total).  
+This setup represents a focused, pilot-scale evaluation aimed at analyzing reasoning behavior rather than establishing aggregate benchmark scores.  
+Resource limitations—particularly inference cost and access to proprietary models—prevented a larger-scale study, so we prioritized depth of reasoning trace analysis and safety behavior inspection.  
+The intent was to determine whether current LLM-based systems can demonstrate trustworthy reasoning under realistic clinical supervision, not to report definitive accuracy statistics.
 
 \subsection{Model Configuration}
-Each agent type was instantiated using distinct foundation models optimized for its functional role. 
-The \textbf{Doctor} and \textbf{Prescription} agents employed \textit{Gemini 2.5 Pro} \cite{gemini2024} for its reasoning and language precision, 
-while the \textbf{Patient}, \textbf{Measurement}, and \textbf{Safety} agents used \textit{Gemini Flash} \cite{geminiFlash2024} to support fast, structured responses. 
-Dialogues were capped at 20 turns per scenario to maintain realistic clinical pacing. 
-All reasoning-trace embeddings were generated using the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} model \cite{reimers2019sentencebert} for semantic similarity and coherence analysis.
+Each agent type was assigned a foundation model suited to its role in the reasoning workflow.  
+The \textbf{Doctor} and \textbf{Prescription} agents used \textit{Gemini 2.5 Pro} \cite{gemini2024} for its strong analytical and generative capabilities,  
+while the \textbf{Patient}, \textbf{Measurement}, and \textbf{Safety} agents used the lightweight \textit{Gemini Flash} model \cite{geminiFlash2024}, chosen for its efficiency in structured, deterministic exchanges.  
+Dialogues were limited to 20 conversational turns per case to approximate realistic clinical pacing.  
+Semantic similarity and reasoning coherence were computed using embeddings from the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} model \cite{reimers2019sentencebert}.
