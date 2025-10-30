@@ -1,25 +1,35 @@
+\paragraph{Final Trust Index (FTI).}
+The Final Trust Index (FTI) provides an integrated measure of overall system reliability by combining epistemic soundness (ETI) and operational prudence (OSI):
+\[
+\mathrm{FTI} = 0.5 \times \mathrm{ETI} + 0.5 \times \mathrm{OSI}.
+\]
+Because the Operational Safety Index (OSI) is defined as zero when no safety agents are active, this formulation automatically discounts configurations that operate without real-time supervision.  
+Consequently, models such as \textbf{Baseline} and \textbf{Consensus}—which reason correctly but without explicit safety control—receive lower FTI values despite high accuracy.  
+In contrast, configurations with active safety oversight (\textbf{Safety} and \textbf{Trust}) achieve higher FTI by demonstrating both coherent reasoning and responsible action.  
+This definition ensures that the composite trust score reflects genuine transparency and prudence rather than structural artifacts of system configuration.
 \paragraph{Interpretive Framework.}
-Together, these indices form a layered view of clinical trust:
+Taken together, these indices provide a layered perspective on system trust:
 \begin{enumerate}
-    \item \textbf{Epistemic Trust (ETI):} “Can we trust what it \textit{thinks}?”—validity and reasoning stability.
-    \item \textbf{Operational Trust (OSI):} “Can we trust what it \textit{does}?”—safety and prudence.
-    \item \textbf{Final Trust (FTI):} “Can we trust it overall?”—balanced synthesis of both dimensions.
+    \item \textbf{Epistemic Trust (ETI):} evaluates whether the model’s reasoning is stable, coherent, and aligned with clinical logic.
+    \item \textbf{Operational Trust (OSI):} reflects whether the model acts safely when interventions are permitted.
+    \item \textbf{Final Trust (FTI):} integrates both forms of reliability into an overall indicator of responsible reasoning.
 \end{enumerate}
-This formulation grounds trust in the integrity of reasoning processes rather than accuracy alone, aligning with clinician-auditable reliability standards.
+In combination, they shift the focus from mere accuracy to the integrity of reasoning processes—an approach more consistent with clinician-auditable standards of reliability.
 
 \subsection{Metric Validation and Reliability}
 
-We validated these metrics across 50 clinical scenarios covering diagnostic reasoning, testing, and prescribing tasks. 
-All correlations were computed on a per-case basis ($n{=}50$). 
-System-level comparisons (e.g., across configurations) are descriptive only and not used for inferential statistics.
+The proposed metrics were evaluated on 50 simulated clinical cases spanning diagnostic, testing, and prescribing tasks.  
+All statistical analyses were performed at the case level ($n{=}50$); system-level comparisons are presented descriptively to illustrate relative behavior rather than to support inferential claims.
 
 \paragraph{Convergent Validity.}
-RDC correlated with evidence coverage ($r{=}0.56$) and inversely with redundancy ratio ($r{=}-0.62$), supporting its interpretation as a measure of reasoning coherence.
+RDC showed positive association with evidence coverage ($r{=}0.56$) and negative association with redundancy ratio ($r{=}-0.62$), suggesting that higher semantic coherence coincides with more complete and less repetitive reasoning.  
+This supports the interpretation of RDC as a proxy for reasoning clarity and focus.
 
 \paragraph{Discriminant Validity.}
-ETI and OSI exhibited weak case-level correlation ($r{=}0.18$), confirming that epistemic reliability and operational safety capture distinct behavioral dimensions.
+Case-level correlation between ETI and OSI was weak ($r{=}0.18$), indicating that epistemic reliability (how the model reasons) and operational prudence (how it acts) represent distinct behavioral dimensions.  
+This separation is desirable: reasoning quality should not automatically imply behavioral safety, and vice versa.
 
 \paragraph{Ablation Robustness and Weight Justification.}
-As shown in Table~\ref{tab:eti_weight_sweep}, system rankings remained stable across broad coefficient variations, demonstrating ETI’s robustness. 
-Component-drop analysis (Table~\ref{tab:eti_component_ablate}) showed that removing either CDR or RDC significantly altered ranking order, confirming that all three terms—accuracy, consensus stability, and reasoning consistency—are necessary to capture genuine reasoning quality. 
-Together, these results justify the chosen weights as empirically stable and clinically interpretable.
+As shown in Table~\ref{tab:eti_weight_sweep}, the ranking of systems remained stable across a wide range of ETI weight settings, indicating that the metric is not overly sensitive to coefficient choice.  
+Further, the component ablation study (Table~\ref{tab:eti_component_ablate}) revealed that removing either CDR or RDC disrupted system ordering and reduced discriminability, confirming that each term contributes essential information.  
+Overall, these results suggest that the weighting scheme is both empirically stable and interpretable from a clinical reasoning standpoint.
