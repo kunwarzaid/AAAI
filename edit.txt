@@ -1,64 +1,71 @@
 \subsection{Safety and Prescription Oversight}
 
-Unlike systems that apply safety filters post hoc, Trust-X enforces \textit{real-time safety feedback} through two dedicated agents:
-
+Safety checks in \textbf{Trust-X} operate in real time rather than after generation.  
+Two agents handle this supervision:
 \begin{itemize}
-    \item \textbf{Test Safety Agent:} Screens diagnostic test orders before execution, flagging redundant or high-risk investigations (e.g., unnecessary imaging).
-    \item \textbf{Prescription Safety Agent:} Reviews generated prescriptions for contraindications and drug–drug interactions (DDIs), labeling them as \textit{SAFE}, \textit{CAUTION}, or \textit{UNSAFE}.
+    \item \textbf{Test Safety Agent:} reviews each diagnostic test before it is ordered, flagging redundant or high-risk procedures (for example, unnecessary imaging).
+    \item \textbf{Prescription Safety Agent:} examines proposed medications for contraindications or drug–drug interactions (DDIs) and labels them as \textit{SAFE}, \textit{CAUTION}, or \textit{UNSAFE}.
 \end{itemize}
 
-Safety thus acts as an active constraint that shapes the reasoning trajectory rather than a passive post-hoc evaluator. 
-The frequency of alerts defines the \textit{Test Safety Alert Rate} and \textit{Unsafe Prescription Percentage} metrics used in evaluation.
-Safety labels were determined using DrugBank \cite{wishart2018drugbank} for DDI reference and an LLM-based safety prompt for clinical context checks.
-The latter acted only as a classifier, not as a reasoning agent, to avoid self-assessment bias.
-
+These agents influence the reasoning process directly, not just its outputs.  
+We measure their activity through the \textit{Test Alert Rate} and the \textit{Unsafe Prescription Rate}.  
+Safety labels were assigned using DrugBank \cite{wishart2018drugbank} as a reference for DDIs and a lightweight LLM-based classifier for contextual checks.  
+The classifier only flagged potential risks and did not participate in reasoning, to avoid self-assessment bias.
 
 \subsection{Explainability and Logging Layer}
 
-All inter-agent communications—questions, test requests, safety warnings, and reasoning updates—are captured by a unified \textbf{Explainability and Logging Layer}. 
-Each record includes:
+Every message between agents—questions, test orders, safety warnings, and reasoning updates—is stored in a shared logging layer.  
+Each record contains:
 \begin{enumerate}
-    \item the acting agent and its role,
-    \item timestamp and case context,
+    \item the agent’s role,
+    \item a timestamp and case context,
     \item the current reasoning trace, and
-    \item trust-relevant metadata (confidence, CDR, safety flags).
+    \item relevant metadata such as confidence, disagreement (CDR), and safety flags.
 \end{enumerate}
-This continuous, machine-readable log enables causal replay, bias audits, and trust analysis, forming the audit trail required for verifiable explainability under clinical AI standards.
+
+These logs can be replayed to trace how a diagnosis emerged, inspect reasoning errors, or audit safety behavior.  
+This continuous record provides the level of traceability expected in regulated clinical AI systems.
 
 \subsection{Trust Metrics: From Transparency to Quantification}
 
-Beyond safety alone, a clinically trustworthy system must reason coherently, act prudently, and remain stable across similar cases. 
-Trust-X formalizes these through three indices: the \textbf{Epistemic Trust Index (ETI)}, the \textbf{Operational Safety Index (OSI)}, and their composite \textbf{Final Trust Index (FTI)}.
+Beyond accuracy or safety alone, a system earns trust when it reasons consistently and acts with care.  
+We summarize these qualities using three related measures:  
+the \textbf{Epistemic Trust Index (ETI)} for reasoning reliability,  
+the \textbf{Operational Safety Index (OSI)} for safe behavior,  
+and their composite, the \textbf{Final Trust Index (FTI)}.
 
 \paragraph{Epistemic Trust Index (ETI).}
-ETI quantifies reasoning reliability by combining diagnostic accuracy, inter-agent stability, and reasoning consistency:
+The Epistemic Trust Index (ETI) combines diagnostic accuracy, agreement among agents, and internal reasoning–diagnosis consistency:
 \[
 \mathrm{ETI} = 0.4 \times \mathrm{Accuracy} + 0.3 \times (1 - \mathrm{CDR}) + 0.3 \times \mathrm{RDC}.
 \]
-Weights $(0.4, 0.3, 0.3)$ reflect clinical reasoning priorities—correctness first, but stability and justification nearly as important—and were verified robust via ablation (Table~\ref{tab:eti_weight_sweep}). 
+We selected these weights to emphasize correctness while still rewarding stable and coherent reasoning.  
+Ablation tests (Table~\ref{tab:eti_weight_sweep}) showed that changing the weights did not alter the ranking of system configurations, suggesting that the metric is stable within reasonable ranges.
 
 \paragraph{Reasoning–Diagnosis Consistency (RDC).}
-RDC measures semantic alignment between an agent’s reasoning trace and its final diagnosis using cosine similarity between sentence embeddings:
+Reasoning–Diagnosis Consistency (RDC) measures how well an agent’s explanation aligns with its final answer.  
+It is computed as the cosine similarity between sentence embeddings of the reasoning text and the predicted diagnosis:
 \[
-\mathrm{RDC}_i = \cos(E(t_i), E(d_i)),
+\mathrm{RDC}_i = \cos(E(t_i), E(d_i)).
 \]
-where $E(\cdot)$ uses the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} encoder \cite{reimers2019sentencebert}.  
-RDC captures internal consistency rather than clinical correctness: a model can be self-consistent yet incorrect. 
-To calibrate interpretability, we compared RDC to expert-rated coherence in a 10-case subset, observing a moderate correlation ($r{=}0.52$). RDC measures internal textual coherence but does not claim medical validity; it complements, rather than replaces, expert evaluation.
+We used the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} encoder \cite{reimers2019sentencebert} for $E(\cdot)$.  
+RDC captures self-consistency rather than clinical correctness.  
+To check that it roughly corresponds to human judgment, we compared RDC with expert ratings on ten cases and found a moderate correlation ($r=0.52$).  
+It is therefore used as a complementary indicator of reasoning coherence rather than a replacement for expert evaluation.
 
 \paragraph{Operational Safety Index (OSI).}
-To prevent artificial inflation of safety scores, OSI is defined as zero when no safety agents are active.
-Otherwise, it penalizes unsafe prescriptions and test alerts equally:
-
-$\mathrm{OSI}=0$ when safety agents are inactive (Baseline, Consensus),
-and $\mathrm{OSI}=100 - 0.5(\text{UnsafeRx\%} + \text{TestAlerts\%})$ otherwise.
-This formulation ensures that operational trust cannot be earned without actual safety supervision.
-
+The Operational Safety Index (OSI) measures how safely the system behaves when safety agents are active.  
+To avoid inflated scores, OSI is defined as zero when safety monitoring is disabled.  
+Otherwise:
+\[
+\mathrm{OSI} = 100 - 0.5(\text{UnsafeRx\%} + \text{TestAlerts\%}).
+\]
+This definition ensures that operational trust cannot be achieved without genuine safety oversight.
 
 \paragraph{Final Trust Index (FTI).}
-FTI integrates epistemic soundness (ETI) and behavioral safety (OSI):
+The Final Trust Index (FTI) averages epistemic and operational components:
 \[
 \mathrm{FTI} = 0.5 \times \mathrm{ETI} + 0.5 \times \mathrm{OSI}.
 \]
-Two variants are reported: $\mathrm{FTI}_{\text{SafetyON}}$ and $\mathrm{FTI}_{\text{SafetyOFF}}$, corresponding to configurations with and without active safety agents. 
-This prevents structural inflation of trust scores in safety-disabled settings and allows separation of reasoning transparency from operational vigilance.
+We report two variants—$\mathrm{FTI}_{\text{SafetyON}}$ and $\mathrm{FTI}_{\text{SafetyOFF}}$—to separate reasoning quality from the effect of active supervision.  
+This distinction helps interpret whether higher trust scores arise from genuine prudence or simply from the absence of safety checks.
