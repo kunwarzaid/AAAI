@@ -1,5 +1,1 @@
-Figure~\ref{fig:bubble_tradeoff} shows how diagnostic accuracy relates to overall trust.
-All systems achieved similar accuracy, but their trust scores were very different.
-The \textbf{Baseline} and \textbf{Consensus} setups scored lower on trust (FTI around 35–39) because they lacked active safety checks.
-In contrast, the \textbf{Safety} and \textbf{Trust} systems reached much higher FTI values (around 75) by actively identifying and preventing unsafe actions.
-This result shows that real trust comes from how a system reasons and behaves, not just from how accurate its answers are.
+The  study  reveals  that,  systems  withactive  safety  agents  register  more  alerts—not  because  theyare less trustworthy, but because they engage in visible over-sight. These findings demonstrate that reliability in clinicalAI emerges from transparency and accountability rather thanaccuracy alone.
