@@ -1,5 +1,5 @@
-Figure~\ref{fig:bubble_tradeoff} shows how diagnostic accuracy and overall trust interact.  
-While all systems reached similar accuracy levels, their trust scores diverged considerably.  
-\textbf{Baseline} and \textbf{Consensus} occupy the lower region of the trust axis (FTI 35–39), consistent with their lack of active safety mechanisms.  
-In contrast, \textbf{Safety} and \textbf{Trust} attained substantially higher FTI $(\approx 75)$ by detecting and mitigating unsafe actions.  
-This pattern highlights that \textit{trustworthiness is expressed through behavior and reasoning, not inferred solely from accuracy metrics}.
+Figure~\ref{fig:bubble_tradeoff} shows how diagnostic accuracy relates to overall trust.
+All systems achieved similar accuracy, but their trust scores were very different.
+The \textbf{Baseline} and \textbf{Consensus} setups scored lower on trust (FTI around 35–39) because they lacked active safety checks.
+In contrast, the \textbf{Safety} and \textbf{Trust} systems reached much higher FTI values (around 75) by actively identifying and preventing unsafe actions.
+This result shows that real trust comes from how a system reasons and behaves, not just from how accurate its answers are.
