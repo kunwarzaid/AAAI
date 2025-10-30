@@ -1,52 +1,64 @@
-\section{Methodology: The Trust-X Framework}
+\subsection{Safety and Prescription Oversight}
 
-Building upon the safety-centered architecture, \textbf{Trust-X} re-conceptualizes medical diagnostic reasoning as a transparent, auditable, and multi-agent process. Its goal extends beyond producing \textit{safe} clinical outputs to ensuring that reasoning itself is \textit{trustworthy}—explainable, consistent, and accountable.
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.8\textwidth]{Doctor Agent (1).png}
-\caption{
-System architecture of \textbf{Trust-X}. Multiple Doctor Agents perform independent reasoning over patient data and measurements under a Consensus Module that quantifies diagnostic disagreement (CDR). Safety agents provide real-time oversight of tests and prescriptions, while an Explainability and Logging Layer records reasoning traces, timestamps, and safety flags. Logged evidence is analyzed by the Trust Metric Engine to compute epistemic (ETI), operational (OSI), and final (FTI) trust indices—linking reasoning transparency with quantifiable reliability.
-}
-\label{fig:logging-architecture}
-\end{figure*}
-
-This design directly addresses two persistent challenges in clinical AI: (i) the \textit{lack of visibility into intermediate reasoning steps}, and (ii) the \textit{difficulty of quantifying uncertainty and trustworthiness}. Trust-X resolves both through structured multi-agent interaction and a suite of multi-dimensional trust metrics.
-
-\subsection{Multi-Agent Diagnostic Simulation}
-
-Trust-X models realistic clinical encounters as iterative dialogues among specialized agents:
+Unlike systems that apply safety filters post hoc, Trust-X enforces \textit{real-time safety feedback} through two dedicated agents:
 
 \begin{itemize}
-    \item \textbf{Doctor Agent:} Conducts hypothesis-driven reasoning, asks questions, orders investigations, and outputs structured conclusions of the form \texttt{DIAGNOSIS READY: <diagnosis>}.
-    \item \textbf{Patient Agent:} Retrieves structured case information and provides consistent, factual responses grounded in the case file.
-    \item \textbf{Measurement Agent:} Simulates diagnostic tests, returning results or indicating unavailable data.
-    \item \textbf{Safety Agent:} Monitors proposed actions (tests and prescriptions) for risks or contraindications.
+    \item \textbf{Test Safety Agent:} Screens diagnostic test orders before execution, flagging redundant or high-risk investigations (e.g., unnecessary imaging).
+    \item \textbf{Prescription Safety Agent:} Reviews generated prescriptions for contraindications and drug–drug interactions (DDIs), labeling them as \textit{SAFE}, \textit{CAUTION}, or \textit{UNSAFE}.
 \end{itemize}
 
-Each consultation proceeds in rounds of doctor–patient exchanges until a stable diagnosis and treatment plan emerge. This decomposition enables independent auditing of reasoning quality, safety behavior, and epistemic stability—critical for understanding how LLMs behave under clinical uncertainty.
+Safety thus acts as an active constraint that shapes the reasoning trajectory rather than a passive post-hoc evaluator. 
+The frequency of alerts defines the \textit{Test Safety Alert Rate} and \textit{Unsafe Prescription Percentage} metrics used in evaluation.
+Safety labels were determined using DrugBank \cite{wishart2018drugbank} for DDI reference and an LLM-based safety prompt for clinical context checks.
+The latter acted only as a classifier, not as a reasoning agent, to avoid self-assessment bias.
 
-\subsection{Consensus Reasoning and Epistemic Uncertainty}
 
-To model epistemic uncertainty—\textit{what the system does not know that it does not know}—Trust-X employs \textbf{consensus reasoning}. 
-Instead of relying on a single deterministic Doctor Agent, $K$ independent replicas analyze the same case in parallel. 
-Their individual diagnoses $\{d_{i1}, \dots, d_{iK}\}$ are aggregated via majority voting, and their level of disagreement defines the \textbf{Consensus Disagreement Rate (CDR)}:
+\subsection{Explainability and Logging Layer}
+
+All inter-agent communications—questions, test requests, safety warnings, and reasoning updates—are captured by a unified \textbf{Explainability and Logging Layer}. 
+Each record includes:
+\begin{enumerate}
+    \item the acting agent and its role,
+    \item timestamp and case context,
+    \item the current reasoning trace, and
+    \item trust-relevant metadata (confidence, CDR, safety flags).
+\end{enumerate}
+This continuous, machine-readable log enables causal replay, bias audits, and trust analysis, forming the audit trail required for verifiable explainability under clinical AI standards.
+
+\subsection{Trust Metrics: From Transparency to Quantification}
+
+Beyond safety alone, a clinically trustworthy system must reason coherently, act prudently, and remain stable across similar cases. 
+Trust-X formalizes these through three indices: the \textbf{Epistemic Trust Index (ETI)}, the \textbf{Operational Safety Index (OSI)}, and their composite \textbf{Final Trust Index (FTI)}.
+
+\paragraph{Epistemic Trust Index (ETI).}
+ETI quantifies reasoning reliability by combining diagnostic accuracy, inter-agent stability, and reasoning consistency:
 \[
-\mathrm{CDR}_i = 1 - \frac{\max_{d \in D_i} f_i(d)}{K},
+\mathrm{ETI} = 0.4 \times \mathrm{Accuracy} + 0.3 \times (1 - \mathrm{CDR}) + 0.3 \times \mathrm{RDC}.
 \]
-where $f_i(d)$ is the frequency of diagnosis $d$ among the $K$ agents for case $i$. All experiments used $K=3$ independent Doctor Agents; tie-breaks defaulted to the lexicographically earliest diagnosis label.
+Weights $(0.4, 0.3, 0.3)$ reflect clinical reasoning priorities—correctness first, but stability and justification nearly as important—and were verified robust via ablation (Table~\ref{tab:eti_weight_sweep}). 
 
-This formulation follows standard inter-rater disagreement measures and quantifies epistemic uncertainty as the fraction of non-consensus across agents.  
-High CDR values indicate divergent diagnostic reasoning, while low CDR reflects convergence and epistemic stability.  
+\paragraph{Reasoning–Diagnosis Consistency (RDC).}
+RDC measures semantic alignment between an agent’s reasoning trace and its final diagnosis using cosine similarity between sentence embeddings:
+\[
+\mathrm{RDC}_i = \cos(E(t_i), E(d_i)),
+\]
+where $E(\cdot)$ uses the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} encoder \cite{reimers2019sentencebert}.  
+RDC captures internal consistency rather than clinical correctness: a model can be self-consistent yet incorrect. 
+To calibrate interpretability, we compared RDC to expert-rated coherence in a 10-case subset, observing a moderate correlation ($r{=}0.52$). RDC measures internal textual coherence but does not claim medical validity; it complements, rather than replaces, expert evaluation.
 
-\subsection{Reasoning Traces and the Differential Diagnosis Lifecycle}
+\paragraph{Operational Safety Index (OSI).}
+To prevent artificial inflation of safety scores, OSI is defined as zero when no safety agents are active.
+Otherwise, it penalizes unsafe prescriptions and test alerts equally:
 
-Each Doctor Agent produces structured reasoning encapsulated in \texttt{<thinking\_process>} tags, including:
-\begin{itemize}
-    \item intermediate hypotheses and their supporting evidence,
-    \item motivations for diagnostic test orders, and
-    \item discarded hypotheses with rationales.
-\end{itemize}
+$\mathrm{OSI}=0$ when safety agents are inactive (Baseline, Consensus),
+and $\mathrm{OSI}=100 - 0.5(\text{UnsafeRx\%} + \text{TestAlerts\%})$ otherwise.
+This formulation ensures that operational trust cannot be earned without actual safety supervision.
 
-Over successive rounds, the system constructs a \textbf{reasoning ledger}—a sequence of hypothesis updates forming the \textbf{Differential Diagnosis Lifecycle (DDxL)}. 
-This mirrors clinical reasoning, where hypotheses are refined as new evidence emerges, enabling quantitative analysis of reasoning patterns such as redundancy, coverage, and internal coherence.
+
+\paragraph{Final Trust Index (FTI).}
+FTI integrates epistemic soundness (ETI) and behavioral safety (OSI):
+\[
+\mathrm{FTI} = 0.5 \times \mathrm{ETI} + 0.5 \times \mathrm{OSI}.
+\]
+Two variants are reported: $\mathrm{FTI}_{\text{SafetyON}}$ and $\mathrm{FTI}_{\text{SafetyOFF}}$, corresponding to configurations with and without active safety agents. 
+This prevents structural inflation of trust scores in safety-disabled settings and allows separation of reasoning transparency from operational vigilance.
