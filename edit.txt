@@ -1,71 +1,8 @@
-\subsection{Safety and Prescription Oversight}
-
-Safety checks in \textbf{Trust-X} operate in real time rather than after generation.  
-Two agents handle this supervision:
-\begin{itemize}
-    \item \textbf{Test Safety Agent:} reviews each diagnostic test before it is ordered, flagging redundant or high-risk procedures (for example, unnecessary imaging).
-    \item \textbf{Prescription Safety Agent:} examines proposed medications for contraindications or drug–drug interactions (DDIs) and labels them as \textit{SAFE}, \textit{CAUTION}, or \textit{UNSAFE}.
-\end{itemize}
-
-These agents influence the reasoning process directly, not just its outputs.  
-We measure their activity through the \textit{Test Alert Rate} and the \textit{Unsafe Prescription Rate}.  
-Safety labels were assigned using DrugBank \cite{wishart2018drugbank} as a reference for DDIs and a lightweight LLM-based classifier for contextual checks.  
-The classifier only flagged potential risks and did not participate in reasoning, to avoid self-assessment bias.
-
-\subsection{Explainability and Logging Layer}
-
-Every message between agents—questions, test orders, safety warnings, and reasoning updates—is stored in a shared logging layer.  
-Each record contains:
-\begin{enumerate}
-    \item the agent’s role,
-    \item a timestamp and case context,
-    \item the current reasoning trace, and
-    \item relevant metadata such as confidence, disagreement (CDR), and safety flags.
-\end{enumerate}
-
-These logs can be replayed to trace how a diagnosis emerged, inspect reasoning errors, or audit safety behavior.  
-This continuous record provides the level of traceability expected in regulated clinical AI systems.
-
-\subsection{Trust Metrics: From Transparency to Quantification}
-
-Beyond accuracy or safety alone, a system earns trust when it reasons consistently and acts with care.  
-We summarize these qualities using three related measures:  
-the \textbf{Epistemic Trust Index (ETI)} for reasoning reliability,  
-the \textbf{Operational Safety Index (OSI)} for safe behavior,  
-and their composite, the \textbf{Final Trust Index (FTI)}.
-
-\paragraph{Epistemic Trust Index (ETI).}
-The Epistemic Trust Index (ETI) combines diagnostic accuracy, agreement among agents, and internal reasoning–diagnosis consistency:
-\[
-\mathrm{ETI} = 0.4 \times \mathrm{Accuracy} + 0.3 \times (1 - \mathrm{CDR}) + 0.3 \times \mathrm{RDC}.
-\]
-We selected these weights to emphasize correctness while still rewarding stable and coherent reasoning.  
-Ablation tests (Table~\ref{tab:eti_weight_sweep}) showed that changing the weights did not alter the ranking of system configurations, suggesting that the metric is stable within reasonable ranges.
-
-\paragraph{Reasoning–Diagnosis Consistency (RDC).}
-Reasoning–Diagnosis Consistency (RDC) measures how well an agent’s explanation aligns with its final answer.  
-It is computed as the cosine similarity between sentence embeddings of the reasoning text and the predicted diagnosis:
-\[
-\mathrm{RDC}_i = \cos(E(t_i), E(d_i)).
-\]
-We used the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} encoder \cite{reimers2019sentencebert} for $E(\cdot)$.  
-RDC captures self-consistency rather than clinical correctness.  
-To check that it roughly corresponds to human judgment, we compared RDC with expert ratings on ten cases and found a moderate correlation ($r=0.52$).  
-It is therefore used as a complementary indicator of reasoning coherence rather than a replacement for expert evaluation.
-
-\paragraph{Operational Safety Index (OSI).}
-The Operational Safety Index (OSI) measures how safely the system behaves when safety agents are active.  
-To avoid inflated scores, OSI is defined as zero when safety monitoring is disabled.  
-Otherwise:
-\[
-\mathrm{OSI} = 100 - 0.5(\text{UnsafeRx\%} + \text{TestAlerts\%}).
-\]
-This definition ensures that operational trust cannot be achieved without genuine safety oversight.
-
 \paragraph{Final Trust Index (FTI).}
-The Final Trust Index (FTI) averages epistemic and operational components:
+The Final Trust Index (FTI) aggregates epistemic reliability and operational prudence into a single measure of overall system trust:
 \[
 \mathrm{FTI} = 0.5 \times \mathrm{ETI} + 0.5 \times \mathrm{OSI}.
 \]
-We report two variants—$\mathrm{FTI}_{\text{SafetyON}}$ and $\mathrm{FTI}_{\text{SafetyOFF}}$—to separate reasoning quality from the effect of active supervision.  
-This distinction helps interpret whether higher trust scores arise from genuine prudence or simply from the absence of safety checks.
+Because the Operational Safety Index (OSI) is defined as zero when safety agents are inactive, this formulation automatically penalizes configurations that lack real safety oversight.  
+As a result, systems such as \textbf{Baseline} and \textbf{Consensus} receive lower FTI values even if their accuracy is high, while configurations with active safety supervision (\textbf{Safety}, \textbf{Trust}) can achieve higher trust scores through explicit vigilance.  
+This approach ensures that overall trust reflects both reasoning quality and demonstrated safety behavior, rather than numerical artifacts of differing supervision settings.
