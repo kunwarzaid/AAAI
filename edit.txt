@@ -1,25 +1,25 @@
 \section{Introduction}
 
-Large Language Models (LLMs) such as GPT-4, Gemini, and Med-PaLM 2 have shown strong results in tasks across many fields, including medicine \cite{kung2023performance,nori2023capabilities,lee2023benefits}. They perform close to clinician levels on medical question-answering tasks, suggesting possible use in diagnosis, documentation, and triage. However, their fluency and broad knowledge also make them unreliable when accuracy and reasoning are critical \cite{ji2023survey,begoli2019need}.
+Large Language Models (LLMs) like GPT-4, Gemini, and Med-PaLM 2 have shown strong performance in many fields, including medicine \cite{kung2023performance,nori2023capabilities,lee2023benefits}. They can answer medical questions at near-clinician levels, suggesting they could one day help with diagnosis, documentation, or triage. However, this fluency can also be a weakness. Models can be unreliable in situations where precise reasoning is essential.
 
-In medicine, accuracy alone is not enough. Clinicians need to understand \textit{why} a decision was made. Medical reasoning involves understanding cause and effect, managing uncertainty, and weighing evidence—skills that current models only partly show. When an AI suggests a diagnosis, trust depends not only on the answer but also on the reasoning behind it \cite{tonekaboni2019clinicians,amann2020explainability}. Without clear reasoning, even a correct answer may be unsafe.
+In medicine, accuracy alone is not enough. Clinicians must also understand \textit{why} a model made a specific decision. Medical reasoning is complex; it involves finding cause and effect, managing uncertainty, and weighing evidence. These are skills that current models only partially possess. When an AI suggests a diagnosis, a clinician's trust depends on seeing the reasoning behind it. Without a clear explanation, even a correct answer may be unsafe to use.
 
-While alignment and safety testing have improved model behavior \cite{mei2023assert}, trust is still a major issue. Clinical LLMs often show unjustified confidence, inconsistent logic, and poor handling of uncertainty \cite{a2019,huang2025survey,kadavath2022language,guo2017calibration,malinin2020uncertainty}. In healthcare, admitting uncertainty is often safer than giving a wrong but confident answer. Systems like Med-PaLM 2, BioGPT, and ChatDoctor can be accurate but unstable—the same case may lead to different diagnoses with small prompt changes \cite{luo2022biogpt,li2023chatdoctor}.
+While safety testing has improved model behavior \cite{mei2023assert}, building trust remains a major challenge. Clinical LLMs often show unjustified confidence, apply logic inconsistently, and fail to handle uncertainty well \cite{a2019,huang2025survey,guo2017calibration,malinin2020uncertainty}. In healthcare, admitting "I don't know" is often safer than giving a wrong but confident answer. Furthermore, many models can be unstable. Giving the same case file to a model twice, with only small changes to the prompt, can lead to two different diagnoses.
 
-Med-Guard \cite{jain2025medguard} improved safety by using four specialized agents—Doctor, Patient, Measurement, and Safety—to simulate a clinical process. It reduced unsafe test orders and prescriptions through structured dialogue and explicit safety checks. However, its reasoning was still hidden, and clinicians could not trace how or why conclusions were reached.
+One system, Med-Guard, improved safety by using specialized agents (Doctor, Patient, etc.) to simulate a clinical process \cite{jain2025medguard}. This method reduced unsafe test orders and prescriptions by using structured dialogue and safety checks. However, its reasoning remained a "black box," leaving clinicians unable to trace how or why a conclusion was reached.
 
-These issues led to \textbf{Trust-X}, a system focused on \textit{trust through explainability}.  
-While Med-Guard asked “Is the outcome safe?”, Trust-X asks “Can we trust how the model reached it?”  
+These challenges led us to develop \textbf{Trust-X}, a system designed to build trust by making the model's reasoning process clear.
+Our approach shifts the question from Med-Guard’s “Is the outcome safe?” to “Can we trust \textit{how} the model reached this outcome?”
 
-Trust-X includes four main features:
+Trust-X has four main features:
 \begin{itemize}
-    \item \textbf{Consensus Reasoning:} Several Doctor Agents analyze each case independently and vote on the best diagnosis. Their disagreement, measured by the \textit{Consensus Disagreement Rate (CDR)}, shows uncertainty.
-    \item \textbf{Reasoning Trace:} Each diagnostic step includes a clear trace linking evidence, reasoning, and results, showing how thoughts evolve.
-    \item \textbf{End-to-End Logging:} Every agent action is recorded with time, role, and reason, allowing full replay and accountability.
-    \item \textbf{Trust Scoring:} A trust layer combines interpretability, safety, and reasoning quality into measurable trust scores.
+    \item \textbf{Consensus Reasoning:} Instead of one, several "Doctor" agents analyze a case. They vote on the diagnosis, and their level of disagreement is used to measure the system's uncertainty.
+    \item \textbf{Reasoning Trace:} Each step of the diagnosis includes a clear trace that links the evidence (like symptoms) to the reasoning and then to the final result.
+    \item \textbf{Complete Logging:} Every action taken by every agent is recorded, including the time, the agent's role, and its stated reason for the action. This allows for a full review of the process.
+    \item \textbf{Trust Scoring:} A new "trust layer" measures the quality of the reasoning, its interpretability, and its safety, combining them into a final trust score.
 \end{itemize}
 
-Together, these parts make reasoning visible and testable. Logging turns black-box behavior into traceable steps; consensus captures uncertainty; and trust scores connect reasoning quality with safety. Trust-X does not claim to make models fully trustworthy—it helps reveal where trust is earned and where it breaks down.
+Together, these features make the model's reasoning visible and testable. Logging turns "black-box" behavior into a series of traceable steps. The consensus process clearly shows uncertainty. The trust scores connect the quality of the reasoning to patient safety. Trust-X does not claim to solve trust; rather, it provides tools to show where trust is earned and where it breaks down.
 
 \section{Related Work}
 
