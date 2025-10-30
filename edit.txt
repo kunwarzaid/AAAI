@@ -1,1 +1,2 @@
-\textbf{Trust-X} builds on earlier safety-oriented architectures but focuses on the reasoning process itself rather than only its outputs. The framework treats diagnostic reasoning as an interaction among specialized agents whose behavior can be traced, checked, and understood by humans. 
+\textbf{Trust-X} is designed to make model reasoning easier to inspect and evaluate. 
+It represents diagnostic reasoning as an interaction among specialized agents whose decisions can be traced, reviewed, and understood by humans.
