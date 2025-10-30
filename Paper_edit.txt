@@ -1,4 +1,5 @@
-Reasoning-trace statistics (Figure~\ref{fig:reasoning_quality}) reveal complementary strengths across configurations.  
-\textbf{Safety} and \textbf{Trust} generated the longest reasoning chains (roughly 300–350 tokens), reflecting explicit verification and safety dialogues.  
-\textbf{Consensus}, although producing shorter traces, showed the highest coherence (RDC = 73.8) and evidence coverage, albeit with greater redundancy due to inter-agent debate.  
-These findings indicate that consensus mechanisms encourage reflective reasoning and internal agreement, while safety agents promote careful verification even at the cost of brevity.
+Reasoning-trace statistics (Figure~\ref{fig:reasoning_quality}) show different strengths for each configuration.
+The \textbf{Safety} and \textbf{Trust} setups produced the longest reasoning chains (about 300–350 tokens), since both include extra steps for checking and verifying decisions.
+The \textbf{Consensus} setup created shorter reasoning traces but achieved the highest coherence (RDC = 73.8) and strong evidence coverage.
+However, it also showed more repetition because multiple agents discussed similar points.
+Overall, consensus reasoning supports thoughtful and consistent discussion, while safety supervision adds careful review and caution, even if it makes the reasoning longer.
