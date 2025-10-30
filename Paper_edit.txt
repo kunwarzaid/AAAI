@@ -1,5 +1,5 @@
-Reasoning-trace statistics (Figure~\ref{fig:reasoning_quality}) show different strengths for each configuration.
-The \textbf{Safety} and \textbf{Trust} setups produced the longest reasoning chains (about 300–350 tokens), since both include extra steps for checking and verifying decisions.
-The \textbf{Consensus} setup created shorter reasoning traces but achieved the highest coherence (RDC = 73.8) and strong evidence coverage.
-However, it also showed more repetition because multiple agents discussed similar points.
-Overall, consensus reasoning supports thoughtful and consistent discussion, while safety supervision adds careful review and caution, even if it makes the reasoning longer.
+Figure~\ref{fig:bubble_tradeoff} shows how diagnostic accuracy and overall trust interact.  
+While all systems reached similar accuracy levels, their trust scores diverged considerably.  
+\textbf{Baseline} and \textbf{Consensus} occupy the lower region of the trust axis (FTI 35–39), consistent with their lack of active safety mechanisms.  
+In contrast, \textbf{Safety} and \textbf{Trust} attained substantially higher FTI $(\approx 75)$ by detecting and mitigating unsafe actions.  
+This pattern highlights that \textit{trustworthiness is expressed through behavior and reasoning, not inferred solely from accuracy metrics}.
