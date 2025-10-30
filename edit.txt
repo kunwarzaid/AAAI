@@ -1,2 +1,58 @@
-\textbf{Trust-X} is designed to make model reasoning easier to inspect and evaluate. 
-It represents diagnostic reasoning as an interaction among specialized agents whose decisions can be traced, reviewed, and understood by humans.
+\subsection{Consensus Reasoning and Epistemic Uncertainty}
+
+To model epistemic uncertainty—Trust-X employs \textbf{consensus reasoning}.  
+Instead of relying on a single deterministic Doctor Agent, $K$ independent replicas analyze the same case in parallel. 
+Their individual diagnoses $\{d_{i1}, \dots, d_{iK}\}$ are aggregated via majority voting, and their level of disagreement defines the \textbf{Consensus Disagreement Rate (CDR)}:
+\[
+\mathrm{CDR}_i = 1 - \frac{\max_{d \in D_i} f_i(d)}{K},
+\]
+where $f_i(d)$ is the frequency of diagnosis $d$ among the $K$ agents for case $i$. All experiments used $K=3$ independent Doctor Agents.
+
+This formulation follows standard inter-rater disagreement measures and quantifies epistemic uncertainty as the fraction of non-consensus across agents.  
+High CDR values indicate divergent diagnostic reasoning, while low CDR reflects convergence and epistemic stability.  
+
+
+
+\subsection{Trust Metrics: From Transparency to Quantification}
+
+Beyond accuracy or safety alone, a system earns trust when it reasons consistently and acts with care.  
+We summarize these qualities using three related measures:  
+the \textbf{Epistemic Trust Index (ETI)} for reasoning reliability,  
+the \textbf{Operational Safety Index (OSI)} for safe behavior,  
+and their composite, the \textbf{Final Trust Index (FTI)}.
+
+\paragraph{Epistemic Trust Index (ETI).}
+The Epistemic Trust Index (ETI) combines diagnostic accuracy, agreement among agents, and internal reasoning–diagnosis consistency:
+\[
+\mathrm{ETI} = 0.4 \times \mathrm{Accuracy} + 0.3 \times (1 - \mathrm{CDR}) + 0.3 \times \mathrm{RDC}.
+\]
+We selected these weights to emphasize correctness while still rewarding stable and coherent reasoning.  
+Ablation tests (Table~\ref{tab:eti_weight_sweep}) showed that changing the weights did not alter the ranking of system configurations, suggesting that the metric is stable within reasonable ranges.
+
+\paragraph{Reasoning–Diagnosis Consistency (RDC).}
+Reasoning–Diagnosis Consistency (RDC) measures how well an agent’s explanation aligns with its final answer.  
+It is computed as the cosine similarity between sentence embeddings of the reasoning text and the predicted diagnosis:
+\[
+\mathrm{RDC}_i = \cos(E(t_i), E(d_i)).
+\]
+We used the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} encoder \cite{reimers2019sentencebert} for $E(\cdot)$.  
+RDC captures self-consistency rather than clinical correctness.  
+
+\paragraph{Operational Safety Index (OSI).}
+The Operational Safety Index (OSI) measures how safely the system behaves when safety agents are active.  
+To avoid inflated scores, OSI is defined as zero when safety monitoring is disabled.  
+Otherwise:
+\[
+\mathrm{OSI} = 100 - 0.5(\text{UnsafeRx\%} + \text{TestAlerts\%}).
+\]
+This definition ensures that operational trust cannot be achieved without genuine safety oversight.
+
+\paragraph{Final Trust Index (FTI).}
+The Final Trust Index (FTI) provides an integrated measure of overall system reliability by combining epistemic trust (ETI) and operational safety (OSI):
+\[
+\mathrm{FTI} = 0.5 \times \mathrm{ETI} + 0.5 \times \mathrm{OSI}.
+\]
+Because the Operational Safety Index (OSI) is defined as zero when no safety agents are active, this formulation automatically discounts configurations that operate without real-time supervision.  
+Consequently, models such as \textbf{Baseline} and \textbf{Consensus}—which reason correctly but without explicit safety control—receive lower FTI values despite high accuracy.  
+In contrast, configurations with active safety oversight (\textbf{Safety} and \textbf{Trust}) achieve higher FTI by demonstrating both coherent reasoning and responsible action.  
+This definition ensures that the composite trust score reflects genuine transparency and prudence rather than structural artifacts of system configuration.
