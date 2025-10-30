@@ -1,0 +1,67 @@
+\subsection{Consensus Reasoning and Epistemic Uncertainty}
+
+To represent uncertainty in diagnostic reasoning, we introduce a simple approach called \textbf{consensus reasoning}.  
+Instead of depending on a single Doctor Agent, \textit{Trust-X} runs $K$ independent agents that each analyze the same clinical case.  
+Their diagnoses $\{d_{i1}, \dots, d_{iK}\}$ are then combined by majority voting.  
+We propose the \textbf{Consensus Disagreement Rate (CDR)} as a direct way to measure how much the agents disagree:
+
+\[
+\mathrm{CDR}_i = 1 - \frac{\max_{d \in D_i} f_i(d)}{K},
+\]
+
+where $f_i(d)$ is the number of agents predicting diagnosis $d$ for case $i$.  
+Here, CDR ranges from 0 (full agreement) to 1 (complete disagreement).  
+All experiments used $K=3$ agents.
+
+While disagreement-based metrics exist in ensemble and inter-rater studies, the specific CDR definition used here is newly proposed for multi-agent LLM settings.  
+It provides an intuitive measure of epistemic uncertainty: higher CDR values mean that agents reached different conclusions, while lower values indicate convergence and stable reasoning.  
+
+---
+
+\subsection{Trust Metrics: From Transparency to Quantification}
+
+To move beyond accuracy alone, we propose a set of three related metrics that together describe how much a system can be trusted:
+\begin{itemize}
+    \item the \textbf{Epistemic Trust Index (ETI)} — reasoning reliability,
+    \item the \textbf{Operational Safety Index (OSI)} — safe and cautious behavior, and
+    \item the \textbf{Final Trust Index (FTI)} — overall balance between reasoning quality and safety.
+\end{itemize}
+
+These indices were developed in this work to make reasoning and safety measurable in a consistent way.
+
+\paragraph{Epistemic Trust Index (ETI).}
+We propose the Epistemic Trust Index (ETI) to combine three core aspects of reasoning quality:  
+accuracy, agreement among agents, and internal reasoning–diagnosis alignment:
+\[
+\mathrm{ETI} = 0.4 \times \mathrm{Accuracy} + 0.3 \times (1 - \mathrm{CDR}) + 0.3 \times \mathrm{RDC}.
+\]
+The chosen weights give slightly more importance to correctness while rewarding stable and coherent reasoning.  
+Ablation studies (Table~\ref{tab:eti_weight_sweep}) show that the relative rankings of configurations remain consistent even when these weights are varied, supporting the stability of the formulation.
+
+\paragraph{Reasoning–Diagnosis Consistency (RDC).}
+We also propose the \textbf{Reasoning–Diagnosis Consistency (RDC)} metric to measure how well an agent’s explanation aligns with its final answer.  
+RDC is calculated as the cosine similarity between the sentence embeddings of the reasoning text ($t_i$) and the final diagnosis ($d_i$):
+\[
+\mathrm{RDC}_i = \cos(E(t_i), E(d_i)).
+\]
+We use the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} model \cite{reimers2019sentencebert} for embedding computation.  
+RDC does not judge medical correctness; it only captures whether the reasoning and conclusion are semantically consistent.  
+In this study, we introduce RDC as a lightweight way to quantify reasoning coherence in the absence of gold-standard expert annotations.
+
+\paragraph{Operational Safety Index (OSI).}
+We revise the safety metric from earlier work and define a new \textbf{Operational Safety Index (OSI)} that fairly evaluates systems with and without safety supervision.  
+To prevent inflated scores, OSI is set to zero when safety agents are inactive.  
+Otherwise, it penalizes both unsafe prescriptions and test alerts equally:
+\[
+\mathrm{OSI} = 100 - 0.5(\text{UnsafeRx\%} + \text{TestAlerts\%}).
+\]
+This design ensures that operational trust cannot be achieved without actual safety oversight.
+
+\paragraph{Final Trust Index (FTI).}
+Finally, we propose the \textbf{Final Trust Index (FTI)} as a composite measure that integrates reasoning quality and safety performance:
+\[
+\mathrm{FTI} = 0.5 \times \mathrm{ETI} + 0.5 \times \mathrm{OSI}.
+\]
+Because OSI equals zero when safety is disabled, FTI automatically downweights systems that do not include active safety reasoning.  
+This way, high trust values correspond only to configurations that are both transparent and risk-aware.  
+FTI thus reflects overall trustworthiness based on reasoning integrity and safe behavior rather than raw accuracy alone.
