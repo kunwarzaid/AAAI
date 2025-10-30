@@ -1,28 +1,92 @@
-\subsection{Algorithmic Computation}
-To make metric derivation reproducible and verifiable, Algorithm~\ref{alg:trustmetrics} outlines how the three trust indices—Epistemic (ETI), Operational (OSI), and Final (FTI)—are computed within our evaluation pipeline.  
-It translates the equations from Section~3.6 into explicit procedural steps, showing how per-case values for accuracy, consensus disagreement, reasoning–diagnosis consistency, and safety rates are aggregated into system-level trust scores.  
-The algorithm also specifies the conditional handling of safety-disabled configurations (where $\mathrm{OSI}=0$), ensuring transparency in how different setups are treated during evaluation.
+\subsection{System Variants}
+Four configurations were evaluated:
+\begin{itemize}
+    \item \textbf{Baseline:} Doctor–Patient–Measurement only.
+    \item \textbf{Safety:} adds safety supervision, consensus off.
+    \item \textbf{Consensus:} adds multi-doctor reasoning, safety off.
+    \item \textbf{Trust (Full):} all agents active.
+\end{itemize}
 
-\section{Experimental Setup}
-\label{sec:setup}
+\section{Results and Discussion}
+\label{sec:results}
 
-\subsection{Dataset and Task}
-\paragraph{AgentClinic–MedQA corpus.}
-We evaluated Trust-X on 50 diagnostic scenarios drawn from the open-source \textit{MedQA} benchmark \cite{jin2021disease}, adapted into the \textit{AgentClinic} interactive format.  
-Each scenario includes structured patient information—symptoms, demographics, and test findings—paired with a verified ground-truth diagnosis from the original MedQA dataset.  
-The AgentClinic wrapper provides standardized dialogue templates for multi-agent reasoning and safety validation.  
-All data are publicly available under a CC BY-NC 4.0 license and contain no identifiable patient information.  
-Cases were randomly selected from the MedQA test split to ensure diversity in disease category and diagnostic complexity.
+\subsection{Quantitative Outcomes}
+Accuracy remained stable across configurations (68–69\%), indicating that variations in trust metrics originate from reasoning design and safety activation, not from underlying model capacity.  
+Under the revised Operational Safety Index (OSI), systems without active safety agents (\textbf{Baseline}, \textbf{Consensus}) now receive OSI = 0, leading to proportionally lower Final Trust Index (FTI) values despite high accuracy.  
+This correction removes the artificial inflation observed in earlier analyses and ensures that operational trust can only be achieved when safety supervision is actually active.
+Trust indices were computed according to Algorithm \ref{alg:trustmetrics}, ensuring consistency across configurations
 
-\paragraph{Sample Size Justification.}
-Each of the four configurations was tested on 50 independent clinical cases (200 runs in total).  
-This setup represents a focused, pilot-scale evaluation aimed at analyzing reasoning behavior rather than establishing aggregate benchmark scores.  
-Resource limitations—particularly inference cost and access to proprietary models—prevented a larger-scale study, so we prioritized depth of reasoning trace analysis and safety behavior inspection.  
-The intent was to determine whether current LLM-based systems can demonstrate trustworthy reasoning under realistic clinical supervision, not to report definitive accuracy statistics.
+In contrast, \textbf{Safety} and \textbf{Trust} configurations—both employing real-time safety agents—achieved substantially higher FTI (75.4), demonstrating that transparent oversight and risk-aware reasoning are the true drivers of trust, not performance alone. Values reflect mean performance across 50 cases; standard errors averaged ±1.8\%.
 
-\subsection{Model Configuration}
-Each agent type was assigned a foundation model suited to its role in the reasoning workflow.  
-The \textbf{Doctor} and \textbf{Prescription} agents used \textit{Gemini 2.5 Pro} \cite{gemini2024} for its strong analytical and generative capabilities,  
-while the \textbf{Patient}, \textbf{Measurement}, and \textbf{Safety} agents used the lightweight \textit{Gemini Flash} model \cite{geminiFlash2024}, chosen for its efficiency in structured, deterministic exchanges.  
-Dialogues were limited to 20 conversational turns per case to approximate realistic clinical pacing.  
-Semantic similarity and reasoning coherence were computed using embeddings from the \texttt{SentenceTransformer(all-MiniLM-L6-v2)} model \cite{reimers2019sentencebert}.
+
+\subsection{Trust–Accuracy Relationship}
+Figure~\ref{fig:bubble_tradeoff} illustrates the trust–accuracy trade-off.  
+All systems perform similarly in diagnostic accuracy, yet their trustworthiness diverges sharply.  
+Baseline and Consensus occupy the lower region of the trust axis FTI (35.2–39.2), reflecting the absence of active safety reasoning.  
+Safety and Trust, on the other hand, attain higher FTI scores (75.4) by explicitly detecting and mitigating unsafe actions.  
+The result underscores that \emph{trustworthiness must be demonstrated through reasoning behavior, not inferred from accuracy metrics}.
+
+\subsection{Reasoning Quality Metrics}
+
+Figure~\ref{fig:reasoning_quality} compares reasoning-trace features.  
+\textbf{Safety} and \textbf{Trust} modes produced the longest reasoning chains (≈ 300–350 tokens), a result of explicit verification and safety deliberation steps.  
+\textbf{Consensus} reasoning—though shorter—achieved the highest coherence (RDC = 73.8) and evidence coverage, but also higher redundancy due to repeated cross-agent discussions.  
+This indicates that consensus mechanisms foster reflective reasoning and self-agreement, while safety supervision enhances thoroughness even at the cost of brevity.
+
+\subsection{Safety and Explainability}
+
+Figure~\ref{fig:safety_explainability} depicts how safety oversight influences reasoning coherence.  
+\textbf{Safety} and \textbf{Trust} configurations generated numerous safety alerts and DDI detections, confirming the vigilance of the safety agents.  
+While Safety mode reduced coherence (RDC ≈ 65) due to frequent interruptions, the \textbf{Trust} mode recovered much of this stability by incorporating consensus reasoning, blending caution with interpretability.  
+This demonstrates that structured safety reasoning—when integrated with deliberative multi-agent exchange—can enhance both prudence and clarity.
+
+\subsection{Multidimensional Trust Profile}
+
+Figure~\ref{fig:trust_radar} visualizes trust dimensions including accuracy, coherence, evidence coverage, and safety proxies (inverted UnsafeRx and TestAlerts).  
+Baseline and Consensus exhibit narrow, safety-deficient profiles, while Safety and Trust show broader, balanced patterns.  
+The Trust configuration provides the most symmetrical radar footprint, combining coherent reasoning, active safety checks, and strong evidence grounding.  
+This multidimensional balance reinforces the design goal of Trust-X: \emph{trust as an emergent property of transparent, reasoned supervision}.
+
+\subsection{Qualitative Reasoning Behavior}
+
+Qualitative review of 50 reasoning traces confirmed four distinct behavioral archetypes:
+\begin{itemize}
+    \item \textbf{Baseline:} fluent but overconfident reasoning with no explicit safety awareness.
+    \item \textbf{Safety:} self-regulating and cautious, often interrupted by safety rejections.
+    \item \textbf{Consensus:} deliberative, uncertainty-aware reasoning across multiple agents.
+    \item \textbf{Trust:} human-like reflective dialogue that unifies verification and consensus.
+\end{itemize}
+These behaviors parallel the quantitative patterns—Trust integrates both epistemic and operational reliability within a single reasoning cycle.
+
+
+
+
+
+\subsection{Discussion}
+
+The revised metrics and results resolve the key reviewer concerns on metric confounding and narrative alignment.  
+By enforcing OSI = 0 when safety supervision is inactive, we eliminate prior over-scoring of unsupervised systems and ensure that high trust values correspond to genuine oversight.  
+\textbf{Baseline} and \textbf{Consensus} now reflect epistemic reliability without operational safety, while \textbf{Safety} and \textbf{Trust} represent end-to-end responsible reasoning.
+
+Overall, Trust-X demonstrates that medical LLMs achieve trustworthy performance only when accuracy, explainability, and safety reasoning co-evolve.  
+Safety mechanisms lower apparent performance but elevate interpretive accountability—aligning quantitative indices with qualitative behavior.  
+This result strengthens the core claim: \emph{trust cannot be inherited from accuracy—it must be earned through transparent reasoning.}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+Large language models may display competent diagnostic reasoning yet remain untrustworthy under clinical scrutiny.  
+By embedding explainability, consensus, and safety into its reasoning pipeline, Trust-X transforms correctness into accountability.  
+The revised OSI formulation ensures that systems cannot appear trustworthy without genuine supervision, reframing evaluation from ``Was the answer correct?'' to ``Was the reasoning responsible?''  
+Trust-X thus establishes a foundation for trust-centered explainability, where safety reasoning and epistemic coherence jointly define reliability.We acknowledge that our evaluation, based on 50 cases per configuration (200 total simulations), limits statistical generalization. 
+However, the study’s intent was diagnostic—probing whether LLMs exhibit trustworthy reasoning under controlled conditions—rather than producing a large-scale benchmark. 
+The observed patterns were consistent across all four settings, suggesting that the core trust behaviors are robust even in a limited sample.
+
+
+
+
+
+\section{Ethical and Regulatory Considerations}
+Trust-X is designed for research use only and does not provide clinical decisions.
+All experiments were conducted on synthetic or public benchmark data.
+The framework supports traceability, safety logging, and human-in-the-loop review, aligning with FDA and EMA guidance on AI transparency.
